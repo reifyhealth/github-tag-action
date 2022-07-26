@@ -167,6 +167,8 @@ dt=$(date '+%Y-%m-%dT%H:%M:%SZ')
 full_name=$GITHUB_REPOSITORY
 git_refs_url=$(jq .repository.git_refs_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/sha}//g')
 
+echo $GITHUB_EVENT_PATH
+
 echo "$dt: **pushing tag $new to repo $full_name"
 
 git_refs_response=$(
@@ -190,3 +192,26 @@ else
   echo "::error::Tag was not created properly."
   exit 1
 fi
+
+# # push a new release ref to github
+# echo "$dt: **building release $new to repo $full_name"
+
+# git_refs_response_release=$(
+# curl -s -X POST \
+# -H "Accept: application/vnd.github+json" \ 
+# -H "Authorization: token $GITHUB_TOKEN"" \
+#   https://api.github.com/repos/OWNER/REPO/releases \
+# -d @- << EOF
+
+# {
+#     "tag_name":$new,
+#     "target_commitish":"main",
+#     "name":"$new",
+#     "body":"test release",
+#     "draft":false,
+#     "prerelease":false,
+#     "generate_release_notes":false
+# }
+# EOF
+# )
+# )
