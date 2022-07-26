@@ -168,8 +168,6 @@ dt=$(date '+%Y-%m-%dT%H:%M:%SZ')
 full_name=$GITHUB_REPOSITORY
 git_refs_url=$(jq .repository.git_refs_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/sha}//g')
 
-echo $GITHUB_EVENT_PATH
-
 echo "$dt: **pushing tag $new to repo $full_name"
 
 git_refs_response=$(
@@ -194,7 +192,7 @@ then
     git_release_url=$(jq .repository.releases_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/id}//g')
     git_release_notes_url="${git_release_url}/generate-notes"
 
-    # release notes requires the file .github/release.yml
+    # release notes requires the file .github/release.yml to be present on the repo
     git_response_release_notes=$(
     curl -X POST $git_release_notes_url \
     -H "Authorization: token $GITHUB_TOKEN" \
@@ -214,7 +212,6 @@ EOF
     curl -X POST $git_release_url \
     -H "Authorization: token $GITHUB_TOKEN" \
 -d @- << EOF
-
 {
     "tag_name":"${new}",
     "target_commitish":"main",
