@@ -190,8 +190,10 @@ echo "$dt: **building release $new to repo $full_name"
 
 git_release_url=$(jq .repository.owner.releases_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/id}//g')
 
+echo "github release url: $git_release_url"
+
 git_response_release=$(
-curl -s -X POST $git_release_url \
+curl -X POST $git_release_url \
 -H "Authorization: token $GITHUB_TOKEN" \
 -d @- << EOF
 
