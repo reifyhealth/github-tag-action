@@ -188,7 +188,7 @@ git_ref_posted=$( echo "${git_refs_response}" | jq .ref | tr -d '"' )
 # push a new release ref to github
 echo "$dt: **building release $new to repo $full_name"
 
-git_release_url=$(jq .repository.owner.releases_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/id}//g')
+git_release_url=$(jq .repository.releases_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/id}//g')
 
 echo "github release url: $git_release_url"
 
