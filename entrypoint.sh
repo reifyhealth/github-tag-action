@@ -185,14 +185,6 @@ EOF
 
 git_ref_posted=$( echo "${git_refs_response}" | jq .ref | tr -d '"' )
 
-echo "::debug::${git_refs_response}"
-if [ "${git_ref_posted}" = "refs/tags/${new}" ]; then
-  exit 0
-else
-  echo "::error::Tag was not created properly."
-  exit 1
-fi
-
 # push a new release ref to github
 echo "$dt: **building release $new to repo $full_name"
 
@@ -218,3 +210,11 @@ EOF
 git_release_posted=$( echo "${git_response_release}" | jq .ref | tr -d '"' )
 
 echo "::debug::${git_response_release}"
+
+echo "::debug::${git_refs_response}"
+if [ "${git_ref_posted}" = "refs/tags/${new}" ]; then
+  exit 0
+else
+  echo "::error::Tag was not created properly."
+  exit 1
+fi
