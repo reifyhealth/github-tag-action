@@ -189,6 +189,7 @@ git_ref_posted=$( echo "${git_refs_response}" | jq .ref | tr -d '"' )
 echo "$dt: **building release $new to repo $full_name"
 
 git_release_url=$(jq .repository.releases_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/id}//g')
+commit_messsage=$(jq .repository.commits[0].message $GITHUB_EVENT_PATH | tr -d '"') 
 
 echo "github release url: $git_release_url"
 
@@ -198,10 +199,10 @@ curl -X POST $git_release_url \
 -d @- << EOF
 
 {
-    "tag_name":$new,
+    "tag_name":${new},
     "target_commitish":"main",
-    "name":"$new",
-    "body":"test release",
+    "name":"${new}",
+    "body":"${commit_messsage}",
     "draft":false,
     "prerelease":false,
     "generate_release_notes":false
