@@ -189,9 +189,22 @@ git_ref_posted=$( echo "${git_refs_response}" | jq .ref | tr -d '"' )
 echo "$dt: **building release $new to repo $full_name"
 
 git_release_url=$(jq .repository.releases_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/id}//g')
-commit_messsage=$(jq .repository.commits[0].message $GITHUB_EVENT_PATH | tr -d '"') 
+git_release_notes_url="${git_release_url}/generate-notes"
 
-echo "github release url: $git_release_url"
+git_response_release_notes=$(
+curl -X POST $git_release_notes_url \
+-H "Authorization: token $GITHUB_TOKEN" \
+-d @- << EOF
+{
+    "tag_name":"${new}",
+    "target_commitish":"main",
+    "previous_tag_name":"${tag}",
+    "configuration_file_path":".github/release.yml"
+}
+EOF
+)
+
+git_release_notes_posted=$( echo "${git_response_release_notes}" | jq .body | tr -d '"' )
 
 git_response_release=$(
 curl -X POST $git_release_url \
@@ -202,7 +215,7 @@ curl -X POST $git_release_url \
     "tag_name":"${new}",
     "target_commitish":"main",
     "name":"${new}",
-    "body":"${commit_messsage}",
+    "body":"${git_release_notes_posted}",
     "draft":false,
     "prerelease":false,
     "generate_release_notes":false
