@@ -199,7 +199,7 @@ curl -X POST $git_release_url \
 -d @- << EOF
 
 {
-    "tag_name":${new},
+    "tag_name":"${new}",
     "target_commitish":"main",
     "name":"${new}",
     "body":"${commit_messsage}",
