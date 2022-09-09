@@ -14,6 +14,7 @@ tag_context=${TAG_CONTEXT:-repo}
 suffix=${PRERELEASE_SUFFIX:-beta}
 verbose=${VERBOSE:-true}
 verbose=${VERBOSE:-true}
+create_release=${CREATE_RELEASE:-false}
 # since https://github.blog/2022-04-12-git-security-vulnerability-announced/ runner uses?
 git config --global --add safe.directory /github/workspace
 
@@ -183,7 +184,52 @@ EOF
 
 git_ref_posted=$( echo "${git_refs_response}" | jq .ref | tr -d '"' )
 
+if $create_release
+then
+    # push a new release ref to github
+    echo "$dt: **building release $new to repo $full_name"
+
+    git_release_url=$(jq .repository.releases_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/id}//g')
+    git_release_notes_url="${git_release_url}/generate-notes"
+
+    # release notes requires the file .github/release.yml to be present on the repo
+    git_response_release_notes=$(
+    curl -X POST $git_release_notes_url \
+    -H "Authorization: token $GITHUB_TOKEN" \
+-d @- << EOF
+{
+    "tag_name":"${new}",
+    "target_commitish":"main",
+    "previous_tag_name":"${tag}",
+    "configuration_file_path":".github/release.yml"
+}
+EOF
+)
+
+    git_release_notes_posted=$( echo "${git_response_release_notes}" | jq .body | tr -d '"' )
+
+    git_response_release=$(
+    curl -X POST $git_release_url \
+    -H "Authorization: token $GITHUB_TOKEN" \
+-d @- << EOF
+{
+    "tag_name":"${new}",
+    "target_commitish":"main",
+    "name":"${new}",
+    "body":"${git_release_notes_posted}",
+    "draft":false,
+    "prerelease":false,
+    "generate_release_notes":false
+}
+EOF
+)
+
+fi
+
+echo "::debug::${git_response_release}"
+
 echo "::debug::${git_refs_response}"
+
 if [ "${git_ref_posted}" = "refs/tags/${new}" ]; then
   exit 0
 else
